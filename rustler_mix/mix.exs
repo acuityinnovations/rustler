@@ -1,7 +1,7 @@
 defmodule Rustler.Mixfile do
   use Mix.Project
 
-  @source_url "https://github.com/rusterlium/rustler"
+  @source_url "https://github.com/acuityinonvations/rustler"
   @version "0.23.0"
 
   def project do
