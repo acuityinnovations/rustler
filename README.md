@@ -1,87 +1,78 @@
 # Rustler
 
-[![Module Version](https://img.shields.io/hexpm/v/rustler.svg)](https://hex.pm/packages/rustler)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/rustler/)
-[![Total Download](https://img.shields.io/hexpm/dt/rustler.svg)](https://hex.pm/packages/rustler)
-[![License](https://img.shields.io/hexpm/l/rustler.svg)](https://github.com/rusterlium/rustler/blob/master/LICENSE)
-[![Last Updated](https://img.shields.io/github/last-commit/rusterlium/rustler.svg)](https://github.com/rusterlium/rustler/commits/master)
+[Documentation](https://docs.rs/crate/rustler) | [Getting Started](https://github.com/rusterlium/rustler/blob/master/README.md#getting-started) | [Example](https://github.com/hansihe/NifIo)
 
-The Mix package for [rustler](https://github.com/rusterlium/rustler), a library to write Erlang Native Implemented Functions (NIFs) in [Rust](https://www.rust-lang.org/) programming language.
+![Build Status](https://github.com/rusterlium/rustler/workflows/CI/badge.svg?branch=master)
 
-## Installation
+Rustler is a library for writing Erlang NIFs in safe Rust code. That means
+there should be no ways to crash the BEAM (Erlang VM). The library provides
+facilities for generating the boilerplate for interacting with the BEAM,
+handles encoding and decoding of Erlang terms, and catches rust panics before
+they unwind into C.
 
-This package is available on [Hex.pm](https://hex.pm/packages/rustler). To install it, add `:rustler` to your dependencies:
+The library provides functionality for both Erlang and Elixir, however Elixir
+is favored as of now.
 
-```elixir
-def deps do
-  [
-    {:rustler, "~> 0.23.0"}
-  ]
-end
+#### Features:
+
+- Safety - The code you write in a Rust NIF should never be able to crash the BEAM.
+- Interop - Decoding and encoding rust values into Erlang terms is as easy as a function call.
+- Type composition - Making a Rust struct encodable and decodable to Erlang or Elixir can be done with a single attribute.
+- Resource objects - Enables you to safely pass a reference to a Rust struct into Erlang code. The struct will be automatically dropped when it's no longer referenced.
+
+#### Getting started
+
+The easiest way of getting started is the [rustler elixir library](https://hex.pm/packages/rustler).
+
+- Add the [rustler elixir library](https://hex.pm/packages/rustler) as a dependency of your project.
+- Run `mix rustler.new` to generate a new NIF in your project. Follow the instructions.
+- If you're already using [`serde`](https://serde.rs), consider using [`serde_rustler`](https://github.com/sunny-g/serde_rustler/tree/master/serde_rustler) to easily encode and decode your data types into and from Elixir terms.
+
+NOTE: If you have previously used Rustler, you need to run `mix archive.uninstall rustler_installer.ez` to remove it before generating the NIF.
+
+#### What it looks like
+
+This is the code for a minimal NIF that adds two numbers and returns the result.
+
+```rust
+#[rustler::nif]
+fn add(a: i64, b: i64) -> i64 {
+    a + b
+}
+
+rustler::init!("Elixir.Math", [add]);
 ```
 
-## Usage
+#### Supported OTP and Elixir Versions
 
-1.  Fetch all necessary dependencies:
+Rustler aims to support the newest three major OTP versions as well as newest three minor Elixir versions.
 
-    ```
-    $ mix deps.get
-    ```
-2.  Check your installation by showing help from the installed Mix task:
+#### Supported NIF version
 
-    ```
-    $ mix help rustler.new
-    ```
+Rustler uses `erlang:system_info(nif_version)` to detect the supported NIF version of the Erlang/OTP
+system for which the NIF is to be compiled. It is possible to restrict the NIF version to an older
+version if the NIF is to be compiled for an older version of Erlang. For example, if the target NIF
+version should be `2.14` (Erlang/OTP 21), this can be defined using an environment variable:
 
-3.  Generate the boilerplate for a new Rustler project. Follow the instructions
-    to configure your project:
-
-    ```
-    $ mix rustler.new
-    ```
-
-4.  [Load the NIF in your program.](#loading-the-nif).
-
-## Crate configuration
-
-The Rust crate compilation can be controlled via Mix compile-time configuration in `config/config.exs`.
-See [configuration options](https://hexdocs.pm/rustler/Rustler.html#module-configuration-options) for more details.
-
-
-## Loading the NIF
-
-Loading a Rustler NIF is done in almost the same way as normal NIFs.
-
-The actual loading is done by calling `use Rustler, otp_app: :my_app` in the module you want to load the NIF in.
-This sets up the `@on_load` module hook to load the NIF when the module is first
-loaded.
-
-```elixir
-defmodule MyProject.MyModule do
-  use Rustler,
-    otp_app: :my_app,
-    crate: :my_crate
-
-  # When loading a NIF module, dummy clauses for all NIF function are required.
-  # NIF dummies usually just error out when called when the NIF is not loaded, as that should never normally happen.
-  def my_native_function(_arg1, _arg2), do: :erlang.nif_error(:nif_not_loaded)
-end
+```
+RUSTLER_NIF_VERSION=2.14 mix compile
 ```
 
-Note that `:crate` is the name in the `[lib]` section of your `Cargo.toml`. The
-`:crate` option is optional if your crate and `otp_app` use the same name.
+#### Community
 
-See the `Rustler` module for more information.
+You can find us in `#rustler` on [freenode](http://freenode.net/) or [the elixir-lang slack](https://elixir-slackin.herokuapp.com/).
 
-## Copyright and License
+#### License
 
 Licensed under either of
 
-- Apache License, Version 2.0, ([LICENSE-APACHE](../LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
-- MIT license ([LICENSE-MIT](../LICENSE-MIT) or http://opensource.org/licenses/MIT)
+- Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
 at your option.
 
-## Contribution
+##### Contribution
 
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any
+additional terms or conditions.
